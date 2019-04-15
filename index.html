@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+</head>
+
+<body>
+
+
+    <div id="all">
+        <div class="top-block">
+            <button id="random">開始</button>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script>
+        var allX, allY, xPixel, yPixel;
+        var canMoveClass, whitePuzzleClass;
+        var isWin;
+        var isNotInRandom;
+        mainfuntion();
+
+        function mainfuntion() {
+            setValue();
+            setSetting();
+            randowButton();
+            setItem();
+        }
+        function setValue() {
+            isWin = false;
+            isNotInRandom = true;
+        }
+        function setSetting() {
+            setSize();
+            setClass();
+            setBox();
+        }
+        function setSize() {
+            allX = 4;
+            allY = 4;
+            xPixel = 600;
+            yPixel = 600;
+        }
+        function setClass() {
+            canMoveClass = "canMove";
+            whitePuzzleClass = "pic0";
+        }
+        function setBox() {
+            for (var j = 0; j < allY; j++) {
+                var row = document.createElement("div");
+                row.classList.add("row", "row" + j);
+
+                for (var i = 0; i < allX; i++) {
+                    var column = document.createElement("div");
+                    column.classList.add("single", "pic" + (j * allX + i));
+                    column.setAttribute("id", (j * allX + i));
+                    row.appendChild(column);
+                }
+                document.getElementById("all").appendChild(row);
+            }
+
+        }
+        function randowButton() {
+            document.getElementById("random").addEventListener("click",
+                everyButton
+            );
+        }
+        function everyButton() {
+            var event = new MouseEvent("click", everyMove);
+
+            var randomTurn = Math.floor(Math.random() * 51 + 50);//50-100 
+
+            isNotInRandom = false;
+            while (randomTurn > 0) {
+                var randomCanMoveIndex = Math.floor(Math.random() * document.getElementsByClassName(canMoveClass).length);
+                document.getElementsByClassName(canMoveClass)[randomCanMoveIndex].dispatchEvent(event);
+                randomTurn--;
+            }
+            isNotInRandom = true;
+
+        }
+
+        function everyMove() {
+            var beforeWhiteBox = document.getElementsByClassName(whitePuzzleClass)[0];
+
+            if (isNotInRandom) {
+                moveAtion(this);
+            };
+
+
+
+            beforeWhiteBox.classList.replace(beforeWhiteBox.classList[1], this.classList[1]);
+            this.classList.replace(this.classList[1], whitePuzzleClass);
+            setItem();
+
+
+
+            if (isNotInRandom) {
+                isWin();
+                if (isWin) {
+                    alert("( ￣ 3￣)y▂ξ成功");
+                }
+            }
+        }
+        function isWin() {
+            var all = document.getElementsByClassName("single");
+            isWin = true;
+            for (var i = 0; i < all.length; i++) {
+                var picClassNum = all[i].classList[1].replace("pic", "");
+                if (picClassNum != all[i].id) {
+                    isWin = false;
+                    break;
+                }
+            }
+        }
+
+        function moveAtion(clickItem) {
+            var whiteBox = document.getElementsByClassName(whitePuzzleClass)[0];
+            var temporarilyWhite1 = document.createElement("div");
+            temporarilyWhite1.setAttribute("id", "tempo1");
+            temporarilyWhite1.setAttribute("style", "background:white; z-index:1;\
+            width:" + xPixel / allX + "px; height:" + yPixel / allY + "px;");
+            var temporarilyWhite2 = document.createElement("div");
+            temporarilyWhite2.setAttribute("id", "tempo2");
+            temporarilyWhite2.setAttribute("style", "background:white; z-index:1;\
+            width:" + xPixel / allX + "px; height:" + yPixel / allY + "px;");
+            var animateBox = document.createElement("div");
+            animateBox.classList.add(clickItem.classList[1]);
+            animateBox.setAttribute("id", "animate")
+            animateBox.setAttribute("style", "z-index:2; position: absolute;");
+            clickItem.appendChild(animateBox);
+            clickItem.appendChild(temporarilyWhite1);
+            whiteBox.appendChild(temporarilyWhite2);
+            var removeBox = function () {
+                document.getElementById("tempo1").remove();
+                animateBox.remove();
+                document.getElementById("tempo2").remove();
+            };
+            switch (lookinfFor(clickItem, whiteBox)) {
+                case "top":
+                    $(animateBox).animate({ bottom: yPixel / allY + "px" }, 200, removeBox);
+                    break;
+                case "bottom":
+                    $(animateBox).animate({ top: yPixel / allY + "px" }, 200, removeBox);
+                    break;
+                case "left":
+                    $(animateBox).animate({ right: xPixel / allX + "px" }, 200, removeBox);
+                    break;
+                case "right":
+                    $(animateBox).animate({ left: xPixel / allX + "px" }, 200, removeBox);
+                    break;
+
+            }
+        }
+        function lookinfFor(target, findThis) {
+            var targetId = parseInt(target.id);
+            var findthisId = parseInt(findThis.id);
+
+            switch (findthisId) {
+                case targetId - allX:
+                    return "top";
+                case targetId + allX:
+                    return "bottom";
+                case targetId + 1:
+                    return "right";
+                case targetId - 1:
+                    return "left";
+            }
+            return "error";
+        }
+        function setItem() {
+            setWho();
+            setOnclick();
+        }
+        function setWho() {
+            var whitePlaceId = document.getElementsByClassName(whitePuzzleClass)[0].id;
+            var whitePlaceIdNum = parseInt(whitePlaceId);
+            removeWho();
+            var topIdNum = {
+                value: whitePlaceIdNum - allX, canSet: true
+            };
+            var bottomIdNum = {
+                value: whitePlaceIdNum + allX, canSet: true
+            };
+            var leftIdNum = {
+                value: whitePlaceIdNum - 1, canSet: true
+            };
+            var rightIdNum = {
+                value: whitePlaceIdNum + 1, canSet: true
+            };
+            var aroundArray = new Array(topIdNum, bottomIdNum, leftIdNum, rightIdNum);
+            if (whitePlaceId % allX == 0) {
+                aroundArray[2].canSet = false;
+            }
+            if (whitePlaceId % allX == (allX - 1)) {
+                aroundArray[3].canSet = false;
+            }
+            if (whitePlaceId < allX) {
+                aroundArray[0].canSet = false;
+            }
+            if (whitePlaceId >= (allX * allY - allX)) {
+                aroundArray[1].canSet = false;
+            }
+            aroundArray.forEach(function (item) {
+                if (item.canSet == true) {
+                    document.getElementById(item.value).classList.add(canMoveClass);
+                }
+            });
+        }
+        function removeWho() {
+            while (document.getElementsByClassName(canMoveClass).length > 0) {
+                document.getElementsByClassName(canMoveClass)[0].classList.remove(canMoveClass);
+            }
+        }
+        function setOnclick() {
+            removeOnlick();
+            var canMoveBox = document.getElementsByClassName(canMoveClass);
+            for (var index = 0; index < canMoveBox.length; index++) {
+                canMoveBox[index].addEventListener("click", everyMove);
+            };
+        }
+        function removeOnlick() {
+            var allBox = document.getElementsByClassName("single");
+            for (var index = 0; index < allBox.length; index++) {
+                allBox[index].removeEventListener("click", everyMove);
+            };
+        }
+    </script>
+
+</body>
+
+</html>
